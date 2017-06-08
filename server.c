@@ -4,6 +4,13 @@
 #include<sys/socket.h>
 #include<arpa/inet.h> //inet_addr
 #include<unistd.h> 
+#include<pthread.h> //for threading , link with lpthread
+
+
+
+
+void *connection_handler(void *);
+
 
 int main(int argc , char *argv[])
 {
@@ -43,9 +50,18 @@ int main(int argc , char *argv[])
         puts("Connection accepted");
          
         //Reply to the client
-        message = "Hello Client , I have received your connection. And now I will assign a handler for you\n";
+        message = "Collected to the chat-room\n";
         write(new_socket , message , strlen(message));
-      
+      	
+      	pthread_t sniffer_thread;
+        new_sock = malloc(1);
+        *new_sock = new_socket;
+         
+       	if( pthread_create( &sniffer_thread , NULL ,  connection_handler , (void*) new_sock) < 0)
+        {
+            perror("could not create thread");
+            return 1;
+        }
         
     }
      
@@ -54,6 +70,44 @@ int main(int argc , char *argv[])
         perror("accept failed");
         return 1;
     }
+     
+    return 0;
+}
+
+/*
+ * This will handle connection for each client
+ * */
+void *connection_handler(void *socket_desc)
+{
+    //Get the socket descriptor
+    int sock = *(int*)socket_desc;
+    int read_size;
+    char *message , client_message[2000];
+     
+    //Send some messages to the client
+    message = " you are now connect our local chat-room .\n We hope you enjoy your visit\n";
+    write(sock , message , strlen(message));
+     
+    //Receive a message from client
+    while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
+    {
+        //Send the message back to client
+        write(sock , client_message , strlen(client_message));
+        memset(client_message, 0, sizeof(client_message)); 
+    }
+     
+    if(read_size == 0)
+    {
+        puts("Client disconnected");
+        fflush(stdout);
+    }
+    else if(read_size == -1)
+    {
+        perror("recv failed");
+    }
+         
+    //Free the socket pointer
+    free(socket_desc);
      
     return 0;
 }
