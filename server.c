@@ -7,7 +7,7 @@
 #include<pthread.h> //for threading , link with lpthread
 
 
-
+int    no_of_conn=0 ,ini_conn=0;
 
 void *connection_handler(void *);
 
@@ -81,18 +81,26 @@ void *connection_handler(void *socket_desc)
 {
     //Get the socket descriptor
     int sock = *(int*)socket_desc;
+    ini_conn=(ini_conn<sock)? sock: ini_conn;
     int read_size;
     char *message , client_message[2000];
-     
+    
+	no_of_conn++;
+
     //Send some messages to the client
-    message = " you are now connect our local chat-room .\n We hope you enjoy your visit\n";
+    message = "you are now connect our local chat-room .\n We hope you enjoy your visit\n";
     write(sock , message , strlen(message));
      
     //Receive a message from client
     while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
     {
         //Send the message back to client
-        write(sock , client_message , strlen(client_message));
+    	int a=0; //Send the message back to client
+        while  (a<no_of_conn)
+        {
+        write(ini_conn-a , client_message , strlen(client_message));
+        a++;
+    	}
         memset(client_message, 0, sizeof(client_message)); 
     }
      
