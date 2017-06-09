@@ -6,16 +6,23 @@
 #include<unistd.h> 
 #include<pthread.h> //for threading , link with lpthread
 #include<errno.h>
+#include<stdbool.h>
 
 
 int    no_of_conn=0 ,ini_conn=0;
 char password_entry1[100],password_entry2[100];
+
+
 void *connection_handler(void *);
 char * password_entry(int );
+char  *substring_bool(char *,char*);
+
+
 struct user { 
 	char *username;
 	char password[100];
-	char *handle;
+	char handle[50];
+	int conn_no;
 };
 struct user user_array[10] ;
 
@@ -88,7 +95,7 @@ void *connection_handler(void *socket_desc)
 {
 	//read and write 
 	int read_size;
-    char *message , client_message[2000];
+    char *message , client_message[2000],cli_mes_final[2100];
     char username_entry[50];
     //Get the socket descriptor
     int sock = *(int*)socket_desc;
@@ -100,11 +107,22 @@ void *connection_handler(void *socket_desc)
     message="Enter your name\n";
     write(sock , message , strlen(message));
     recv(sock , username_entry , 50 , 0);
+    
+    if (username_entry[strlen(username_entry)-2] == 0x0d) 
+    {
+    	username_entry[strlen(username_entry)-2] = 0;
+  	} 
+  	else if (username_entry[strlen(username_entry)-1] == '\n')
+  	{
+    	username_entry[strlen(username_entry)-1] = 0;
+  	}
+    printf("%s\n",username_entry );
+    printf("%s\n","asddf" );
     user_handled.username=username_entry;
 	
 	for(int count=0;count<no_of_conn;count++){
-		printf("%s\n",user_array[count].username );
-		printf("%d\n",strcmp(user_array[count].username,username_entry));
+		//printf("%s\n",user_array[count].username );
+		//printf("%d\n",strcmp(user_array[count].username,username_entry));
         if(user_array[count].username!=NULL && strcmp(user_array[count].username,username_entry)==0){
             pass=1;
             user_handled=user_array[count];
@@ -119,11 +137,11 @@ void *connection_handler(void *socket_desc)
     message="Member by this name exists enter the password--\n";
     write(sock , message , strlen(message));
     recv(sock , client_message , 100 , 0);
-     printf("%s\n","b" );
+    
     if (strcmp(user_handled.password,client_message)){
     	message="Wrong password\n";
     write(sock , message , strlen(message));
-    	exit(EXIT_FAILURE);
+    	close(sock);
     }
     memset(client_message, 0, sizeof(client_message));
     
@@ -131,15 +149,14 @@ void *connection_handler(void *socket_desc)
     else if (pass==0){
     
     strcpy(user_handled.password,password_entry(sock));
-
+    user_handled.conn_no=no_of_conn;
+    printf("%d\n", user_handled.conn_no);
     user_array[no_of_conn]=user_handled;
     
     }
 
-    printf("%s\n","a" );
 
 	//printf("%s\n", user_array[no_of_conn].username);
-    	 printf("%s\n","c" );
 	no_of_conn++;
 
     //Send some messages to the client
@@ -147,16 +164,49 @@ void *connection_handler(void *socket_desc)
     write(sock , message , strlen(message));
      
     //Receive a message from client
+    
     while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
-    {
-        //Send the message back to client
-    	int a=0; //Send the message back to client
-        while  (a<no_of_conn)
-        {
-        write(ini_conn-a , client_message , strlen(client_message));
-        a++;
-    	}
-        memset(client_message, 0, sizeof(client_message)); 
+    {	if (client_message[0]!=0x0d)
+		{
+	    	char *handling_ptr;
+			if(handling_ptr=substring_bool(client_message,"handle "))
+			{
+				
+				if (handling_ptr[strlen(handling_ptr)-2] == 0x0d) 
+				{
+	    			handling_ptr[strlen(handling_ptr)-2] = 0;
+	 			} 
+	 			else if (handling_ptr[strlen(handling_ptr)-1] == '\n') 
+	 			{
+	    		handling_ptr[strlen(handling_ptr)-1] = 0;
+	  			}
+				printf("%d\n",user_handled.conn_no );
+				strcpy(user_handled.handle,handling_ptr);	
+
+				user_array[user_handled.conn_no]=user_handled;
+			}
+	        //Send the message back to client
+	    	int a=0; //Send the message back to client
+	       	strcat(cli_mes_final,"( ");
+	       	printf("%zu\n",strlen(user_array[user_handled.conn_no].handle) );
+
+	       	if(strlen(user_array[user_handled.conn_no].handle))
+	       	{
+			strcat(cli_mes_final,user_array[user_handled.conn_no].handle);
+			}
+			else
+			strcat(cli_mes_final,user_handled.username);
+			strcat(cli_mes_final," ): ");
+			strcat(cli_mes_final,client_message);
+			strcat(client_message,"\n");
+	        while  (a<no_of_conn)
+	        {
+	        write(ini_conn-a , cli_mes_final , strlen(cli_mes_final));
+	        a++;
+	    	}
+	        memset(cli_mes_final, 0, sizeof(cli_mes_final)); 
+	        memset(client_message, 0, sizeof(client_message));
+	    } 
     }
      
     if(read_size == 0)
@@ -185,9 +235,7 @@ char* password_entry(int fil_dsc){
     message="Re-enter the password--\n";
     write(fil_dsc , message , strlen(message));
     recv(fil_dsc , password_entry2 , 100 , 0);
-    printf("%s\n", password_entry2);
-    printf("%s\n", password_entry1);
-    printf("%d",password_entry1!=password_entry2);
+    
     if (strcmp(password_entry1,password_entry2))
     {	printf("%s\n","saa" );
 	memset(password_entry2, 0, sizeof(password_entry2));
@@ -200,3 +248,42 @@ char* password_entry(int fil_dsc){
     }
 }
 
+char * substring_bool(char *big_str,char*lit_str){
+	 int i,j;
+	 int temp;
+	 char *temp_ptr=NULL;
+    
+ 
+    for(i=0;big_str[i]!='\0';i++)
+    {
+        j=0;
+        if(big_str[i]==lit_str[j])
+        {
+            temp=i;
+            
+            while(big_str[i]==lit_str[j])
+            {
+                i++;
+                j++;
+            }
+ 
+            if(lit_str[j]=='\0')
+            {
+                temp_ptr=big_str+i;
+                printf("The substring is present in given string at position %s\n",temp_ptr);
+                return temp_ptr;
+            }
+            else
+            {
+                i=temp;
+                temp=0;
+                temp_ptr=NULL;
+            }
+        }
+    }
+ 
+    if(temp==0){
+        printf("The substring is not present in given string\n");
+        return temp_ptr;
+    }
+}
