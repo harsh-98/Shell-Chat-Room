@@ -24,6 +24,8 @@ struct user {
 	char password[100];
 	char handle[50];
 	int user_no;
+	int conn_array[10];
+	int pos;
 };
 struct user user_array[10] ;
 
@@ -120,6 +122,7 @@ void *connection_handler(void *socket_desc)
 		//printf("%d\n",strcmp(user_array[count].username,username_entry));
         if(user_array[count].username!=NULL && strcmp(user_array[count].username,username_entry)==0){
             pass=1;
+            user_array[count].conn_array[++user_array[count].pos]=sock;
             user_handled=user_array[count];
             break;
         } else if (user_array[count].username==NULL){
@@ -146,6 +149,9 @@ void *connection_handler(void *socket_desc)
     strcpy(user_handled.password,password_entry(sock));
     user_handled.user_no=no_of_users;
     printf("%d\n", user_handled.user_no);
+   // printf("%zu\n",sizeof user_handled.conn_array );
+    user_handled.pos=0;
+    user_handled.conn_array[0]=sock;
     user_array[no_of_users]=user_handled;
     printf("%s\n",user_array[no_of_users].username);
     no_of_users++;
@@ -195,9 +201,11 @@ void *connection_handler(void *socket_desc)
 
 			strcat(cli_mes_final,handling_ptr1);
 			strcat(cli_mes_final,"\n");
+
 			printf("%d\n",ini_conn );
 			printf(	"%d\n",ini_conn+a);
-			write(ini_conn+a-no_of_conn+1, cli_mes_final , strlen(cli_mes_final));
+			for(int j=0;j<=user_array[a].pos;j++)
+			write(user_array[a].conn_array[j], cli_mes_final , strlen(cli_mes_final));
 			memset(cli_mes_final, 0, sizeof(cli_mes_final)); 
 	        memset(client_message, 0, sizeof(client_message));
 
