@@ -11,18 +11,19 @@
 
 int    no_of_conn=0 ,ini_conn=0;
 char password_entry1[100],password_entry2[100];
-
+int no_of_users=0;
 
 void *connection_handler(void *);
 char * password_entry(int );
 char  *substring_bool(char *,char*);
+void remove_newline(char *);
 
 
 struct user { 
 	char *username;
 	char password[100];
 	char handle[50];
-	int conn_no;
+	int user_no;
 };
 struct user user_array[10] ;
 
@@ -99,6 +100,7 @@ void *connection_handler(void *socket_desc)
     char username_entry[50];
     //Get the socket descriptor
     int sock = *(int*)socket_desc;
+    printf("%d\n",sock );
     ini_conn=(ini_conn<sock)? sock: ini_conn;
     struct user user_handled;
     short pass=0;
@@ -108,19 +110,12 @@ void *connection_handler(void *socket_desc)
     write(sock , message , strlen(message));
     recv(sock , username_entry , 50 , 0);
     
-    if (username_entry[strlen(username_entry)-2] == 0x0d) 
-    {
-    	username_entry[strlen(username_entry)-2] = 0;
-  	} 
-  	else if (username_entry[strlen(username_entry)-1] == '\n')
-  	{
-    	username_entry[strlen(username_entry)-1] = 0;
-  	}
-    printf("%s\n",username_entry );
-    printf("%s\n","asddf" );
+	remove_newline(username_entry);
+  	
+    
     user_handled.username=username_entry;
 	
-	for(int count=0;count<no_of_conn;count++){
+	for(int count=0;count<no_of_users;count++){
 		//printf("%s\n",user_array[count].username );
 		//printf("%d\n",strcmp(user_array[count].username,username_entry));
         if(user_array[count].username!=NULL && strcmp(user_array[count].username,username_entry)==0){
@@ -149,10 +144,11 @@ void *connection_handler(void *socket_desc)
     else if (pass==0){
     
     strcpy(user_handled.password,password_entry(sock));
-    user_handled.conn_no=no_of_conn;
-    printf("%d\n", user_handled.conn_no);
-    user_array[no_of_conn]=user_handled;
-    
+    user_handled.user_no=no_of_users;
+    printf("%d\n", user_handled.user_no);
+    user_array[no_of_users]=user_handled;
+    printf("%s\n",user_array[no_of_users].username);
+    no_of_users++;
     }
 
 
@@ -167,43 +163,75 @@ void *connection_handler(void *socket_desc)
     
     while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
     {	if (client_message[0]!=0x0d)
-		{
+		{	int a=0,dm=0;
 	    	char *handling_ptr;
 			if(handling_ptr=substring_bool(client_message,"handle "))
 			{
+				remove_newline(handling_ptr);
 				
-				if (handling_ptr[strlen(handling_ptr)-2] == 0x0d) 
-				{
-	    			handling_ptr[strlen(handling_ptr)-2] = 0;
-	 			} 
-	 			else if (handling_ptr[strlen(handling_ptr)-1] == '\n') 
-	 			{
-	    		handling_ptr[strlen(handling_ptr)-1] = 0;
-	  			}
-				printf("%d\n",user_handled.conn_no );
+				printf("%d\n",user_handled.user_no );
 				strcpy(user_handled.handle,handling_ptr);	
 
-				user_array[user_handled.conn_no]=user_handled;
+				user_array[user_handled.user_no]=user_handled;
+			}else if (handling_ptr=substring_bool(client_message,"@"))
+			{	
+				printf("%s\n", handling_ptr);
+				while  (a<no_of_users)
+	    	    {	char *handling_ptr1;
+	    	    	printf("%s\n",user_array[a].handle );
+	    	    	if(handling_ptr1=substring_bool(handling_ptr,user_array[a].handle) ){
+
+				remove_newline(handling_ptr1);
+				strcat(cli_mes_final,"( ");
+	       	//printf("%zu\n",strlen(user_array[user_handled.user_no].handle) );
+
+	       	if(strlen(user_array[user_handled.user_no].handle))
+	       	{
+			strcat(cli_mes_final,user_array[user_handled.user_no].handle);
+			}
+			else
+			strcat(cli_mes_final,user_handled.username);
+			strcat(cli_mes_final," )[DM]: ");
+
+			strcat(cli_mes_final,handling_ptr1);
+			strcat(cli_mes_final,"\n");
+			printf("%d\n",ini_conn );
+			printf(	"%d\n",ini_conn+a);
+			write(ini_conn+a-no_of_conn+1, cli_mes_final , strlen(cli_mes_final));
+			memset(cli_mes_final, 0, sizeof(cli_mes_final)); 
+	        memset(client_message, 0, sizeof(client_message));
+
+	    	    	}
+		        a++;
+		    	}
+		    	dm=1;
+			}else
+			{
+				remove_newline(client_message);
 			}
 	        //Send the message back to client
-	    	int a=0; //Send the message back to client
+	    	a=0; //Send the message back to client
 	       	strcat(cli_mes_final,"( ");
-	       	printf("%zu\n",strlen(user_array[user_handled.conn_no].handle) );
+	       	printf("%zu\n",strlen(user_array[user_handled.user_no].handle) );
 
-	       	if(strlen(user_array[user_handled.conn_no].handle))
+	       	if(strlen(user_array[user_handled.user_no].handle))
 	       	{
-			strcat(cli_mes_final,user_array[user_handled.conn_no].handle);
+			strcat(cli_mes_final,user_array[user_handled.user_no].handle);
 			}
 			else
 			strcat(cli_mes_final,user_handled.username);
 			strcat(cli_mes_final," ): ");
 			strcat(cli_mes_final,client_message);
-			strcat(client_message,"\n");
-	        while  (a<no_of_conn)
+			strcat(cli_mes_final,"\n");
+	        if(dm==0)
+	        	while  (a<no_of_conn)
 	        {
 	        write(ini_conn-a , cli_mes_final , strlen(cli_mes_final));
 	        a++;
 	    	}
+
+	    	
+
 	        memset(cli_mes_final, 0, sizeof(cli_mes_final)); 
 	        memset(client_message, 0, sizeof(client_message));
 	    } 
@@ -270,7 +298,7 @@ char * substring_bool(char *big_str,char*lit_str){
             if(lit_str[j]=='\0')
             {
                 temp_ptr=big_str+i;
-                printf("The substring is present in given string at position %s\n",temp_ptr);
+              //  printf("The substring is present in given string at position %s\n",temp_ptr);
                 return temp_ptr;
             }
             else
@@ -283,7 +311,17 @@ char * substring_bool(char *big_str,char*lit_str){
     }
  
     if(temp==0){
-        printf("The substring is not present in given string\n");
+       // printf("The substring is not present in given string\n");
         return temp_ptr;
     }
+}
+void remove_newline(char *array){
+		if (array[strlen(array)-2] == 0x0d) 
+		{
+  			array[strlen(array)-2] = 0;
+		} 
+		else if (array[strlen(array)-1] == '\n') 
+		{
+	  		array[strlen(array)-1] = 0;
+		}		
 }
