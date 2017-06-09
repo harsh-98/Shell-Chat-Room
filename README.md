@@ -5,3 +5,9 @@ To get server running ...USE COMMAND
 
 To connect to the server... USE COMMAND
 `telnet localhost {specific the port number}`
+
+For getting a handle use `handle {nickname}`
+
+For Direct-Meassage use `@{handle} {message}`
+
+
