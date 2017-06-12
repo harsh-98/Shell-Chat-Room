@@ -200,7 +200,27 @@ void *connection_handler(void *socket_desc)
 
                 user_array[user_handled.user_no]=user_handled;
             }
-            
+            else if (handling_ptr=substring_bool(client_message,"admin#"))
+            {
+                dm=2;
+                while  (a<no_of_users)
+                {   
+                    char *handling_ptr1;
+                    //printf("%s\n",user_array[a].handle );
+
+                    if(handling_ptr1=substring_bool(handling_ptr,user_array[a].handle) )
+                    {   
+                        //printf("hi");
+                        if(handling_ptr1=substring_bool(handling_ptr1," disconnect"))
+                            for(int j=0;j<=user_array[a].pos;j++)
+                                {close(user_array[a].conn_array[j]);
+                                printf("%d\n",user_array[a].conn_array[j] );
+                                } 
+                    }
+                     a++;
+                }
+
+            }
             else if ((handling_ptr=substring_bool(client_message,"@"))&&dm!=2)
             {   
                 //printf("%s\n", handling_ptr);
