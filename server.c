@@ -157,10 +157,21 @@ void *connection_handler(void *socket_desc)
     no_of_users++;
     }
 
-
-	//printf("%s\n", user_array[no_of_conn].username);
 	no_of_conn++;
+    int new_user=0;
+    //printf("%s\n", user_array[no_of_conn].username);
+     // new user is connected !!
+            strcat(cli_mes_final,"( Bot ) : NEW USER @");
+            strcat(cli_mes_final,user_handled.username);
+            strcat(cli_mes_final," joined the chat-room\n");
 
+            while  (new_user<no_of_conn)
+            {
+            if(ini_conn-new_user!=sock)
+            write(ini_conn-new_user , cli_mes_final , strlen(cli_mes_final));
+            new_user++;
+            }
+            new_user=0;
     //Send some messages to the client
     message = "you are now connect our local chat-room .\n We hope you enjoy your visit\n";
     write(sock , message , strlen(message));
@@ -217,8 +228,9 @@ void *connection_handler(void *socket_desc)
 			{
 				remove_newline(client_message);
 			}
-	        //Send the message back to client
-	    	a=0; //Send the message back to client
+           
+            a=0;
+             //Send the message back to client
 	       	strcat(cli_mes_final,"( ");
 	       	printf("%zu\n",strlen(user_array[user_handled.user_no].handle) );
 
@@ -234,6 +246,7 @@ void *connection_handler(void *socket_desc)
 	        if(dm==0)
 	        	while  (a<no_of_conn)
 	        {
+            if(ini_conn-a!=sock)
 	        write(ini_conn-a , cli_mes_final , strlen(cli_mes_final));
 	        a++;
 	    	}
