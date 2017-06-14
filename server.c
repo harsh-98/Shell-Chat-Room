@@ -8,6 +8,14 @@
 #include<errno.h>
 #include<stdbool.h>
 
+#define KRED  "\x1B[31m"
+#define KGRN  "\x1B[32m"
+#define KYEL  "\x1B[33m"
+#define KBLU  "\x1B[34m"
+#define KMAG  "\x1B[35m"
+#define KCYN  "\x1B[36m"
+#define KWHT  "\x1B[37m"
+#define RESET "\033[0m"
 
 int     no_of_conn=0 ,ini_conn=0;
 char    password_entry1[100],password_entry2[100];
