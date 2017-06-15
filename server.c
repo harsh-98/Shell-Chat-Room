@@ -192,7 +192,7 @@ void *connection_handler(void *socket_desc)
             }
             memset(cli_mes_final, 0, sizeof(client_message));
     //Send some messages to the client
-    message =KGRN "you are now connect our local chat-room .\n We hope you enjoy your visit\n" RESET KWHT;
+    message =KGRN "you are now connect our local chat-room.\nWe hope you enjoy your visit\n" RESET KWHT;
     write(sock , message , strlen(message));
      
     //Receive a message from client
