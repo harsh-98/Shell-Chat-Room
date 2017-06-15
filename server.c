@@ -117,7 +117,7 @@ void *connection_handler(void *socket_desc)
     short pass=0;
 
     // username 
-    message="Enter your name\n";
+    message=KGRN "Enter your name\n" RESET KWHT;
     write(sock , message , strlen(message));
     recv(sock , username_entry , 50 , 0);
 
@@ -146,13 +146,13 @@ void *connection_handler(void *socket_desc)
 
     if (pass==1)
     {
-        message="Member by this name exists enter the password--\n";
+        message=KGRN "Member by this name exists enter the password--\n" RESET KWHT;
         write(sock , message , strlen(message));
         recv(sock , client_message , 100 , 0);
     
         if (strcmp(user_handled.password,client_message))
         {
-            message="Wrong password\n";
+            message=KRED "Wrong password\n" RESET ;
             write(sock , message , strlen(message));
             close(sock);
         }
@@ -175,9 +175,14 @@ void *connection_handler(void *socket_desc)
     int new_user=0;
     ////printf("%s\n", user_array[no_of_conn].username);
      // new user is connected !!
-            strcat(cli_mes_final,"( Bot ) : NEW USER @");
+            strcat(cli_mes_final,KYEL );
+            strcat(cli_mes_final,"( Bot )");
+            strcat(cli_mes_final,RESET );
+            strcat(cli_mes_final,KCYN " : NEW USER @");
+            strcat(cli_mes_final,KGRN );
             strcat(cli_mes_final,user_handled.username);
-            strcat(cli_mes_final," joined the chat-room\n");
+            strcat(cli_mes_final,RESET KCYN);
+            strcat(cli_mes_final," joined the chat-room\n" RESET KWHT);
 
             while  (new_user<no_of_conn)
             {
@@ -187,7 +192,7 @@ void *connection_handler(void *socket_desc)
             }
             memset(cli_mes_final, 0, sizeof(client_message));
     //Send some messages to the client
-    message = "you are now connect our local chat-room .\n We hope you enjoy your visit\n";
+    message =KGRN "you are now connect our local chat-room .\n We hope you enjoy your visit\n" RESET KWHT;
     write(sock , message , strlen(message));
      
     //Receive a message from client
@@ -252,7 +257,8 @@ void *connection_handler(void *socket_desc)
                              strcat(cli_mes_final,user_handled.username);
                         }
                         //direct message            
-                        strcat(cli_mes_final," )[DM]: ");
+                        strcat(cli_mes_final," )");
+                        strcat(cli_mes_final,KMAG "[DM]: " RESET );
                         strcat(cli_mes_final,handling_ptr1);
                         strcat(cli_mes_final,"\n");      
                 
@@ -276,7 +282,7 @@ void *connection_handler(void *socket_desc)
            
             a=0;
              //Send the message back to client
-            strcat(cli_mes_final,"( ");
+            strcat(cli_mes_final,KCYN "( ");
             //printf("%zu\n",strlen(user_array[user_handled.user_no].handle));
 
             if(strlen(user_array[user_handled.user_no].handle))
@@ -288,9 +294,9 @@ void *connection_handler(void *socket_desc)
                  strcat(cli_mes_final,user_handled.username);
             }
 
-            strcat(cli_mes_final," ): ");
+            strcat(cli_mes_final," )" RESET KYEL ": ");
             strcat(cli_mes_final,client_message);
-            strcat(cli_mes_final,"\n");
+            strcat(cli_mes_final,"\n" RESET KWHT);
 
             if(dm==0)
                 while (a<no_of_conn)
@@ -309,7 +315,7 @@ void *connection_handler(void *socket_desc)
      
     if(read_size == 0)
     {
-        puts("Client disconnected");
+        puts(KRED "Client disconnected" RESET KWHT);
         fflush(stdout);
     }
     else if(read_size == -1)
@@ -326,11 +332,11 @@ void *connection_handler(void *socket_desc)
 char* password_entry(int fil_dsc){
     
     char *message;
-    message="Enter your password (password must be between 10-100 characters)\n";
+    message=KGRN "Enter your password (password must be between 10-100 characters)\n" KWHT;
     write(fil_dsc , message , strlen(message));
     recv(fil_dsc , password_entry1 , 100 , 0);
    // memset(message, 0, sizeof(message));
-    message="Re-enter the password--\n";
+    message=KGRN "Re-enter the password--\n" RESET KWHT;
     write(fil_dsc , message , strlen(message));
     recv(fil_dsc , password_entry2 , 100 , 0);
     
