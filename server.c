@@ -124,7 +124,7 @@ void *connection_handler(void *socket_desc)
     remove_newline(username_entry);
     
     user_handled.username=username_entry;
-    
+    strcpy(user_handled.handle,username_entry);
     for(int count=0;count<no_of_users;count++)
     {
         ////printf("%s\n",user_array[count].username );
@@ -162,6 +162,7 @@ void *connection_handler(void *socket_desc)
     {
         strcpy(user_handled.password,password_entry(sock));
         user_handled.user_no=no_of_users;
+
         //printf("%d\n", user_handled.user_no);
         // //printf("%zu\n",sizeof user_handled.conn_array );
         user_handled.pos=0;
@@ -245,12 +246,13 @@ void *connection_handler(void *socket_desc)
                     {
 
                         remove_newline(handling_ptr1);
+                          strcat(cli_mes_final,KBLU );
                         strcat(cli_mes_final,"( ");
                         ////printf("%zu\n",strlen(user_array[user_handled.user_no].handle) );
 
                         if(strlen(user_array[user_handled.user_no].handle))
                         {
-                             strcat(cli_mes_final,user_array[user_handled.user_no].handle);
+                             strcat(cli_mes_final, user_array[user_handled.user_no].handle );
                         }
                          else
                         {
@@ -258,10 +260,10 @@ void *connection_handler(void *socket_desc)
                         }
                         //direct message            
                         strcat(cli_mes_final," )");
-                        strcat(cli_mes_final,KMAG "[DM]: " RESET );
-                        strcat(cli_mes_final,handling_ptr1);
-                        strcat(cli_mes_final,"\n");      
-                
+                        strcat(cli_mes_final, RESET);
+                        strcat(cli_mes_final,KMAG "[DM]: " RESET KCYN );
+                        strcat(cli_mes_final,handling_ptr1 );
+                        strcat(cli_mes_final,"\n" RESET KWHT);
 
                         //printf("%d\n",ini_conn );
                         //printf( "%d\n",ini_conn+a);
