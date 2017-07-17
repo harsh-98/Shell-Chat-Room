@@ -25,17 +25,18 @@ void    *connection_handler(void *);
 char    * password_entry(int );
 char    *substring_bool(char *,char*);
 void    remove_newline(char *);
+int connection_array[100]={0};
 
 struct user { 
     char *username;
     char password[100];
     char handle[50];
     int user_no;
-    int conn_array[10];
+    int conn_array[20];
     int pos;
 };
 
-struct user user_array[10] ;
+struct user user_array[20] ;
 
 int main(int argc , char *argv[])
 {
@@ -111,6 +112,7 @@ void *connection_handler(void *socket_desc)
 
     //Get the socket descriptor
     int sock = *(int*)socket_desc;
+    connection_array[sock]=1;
     //printf("%d\n",sock );
     ini_conn=(ini_conn<sock)? sock: ini_conn;
     struct user user_handled;
@@ -154,7 +156,9 @@ void *connection_handler(void *socket_desc)
         {
             message=KRED "Wrong password\n" RESET ;
             write(sock , message , strlen(message));
+            connection_array[sock]=0;
             close(sock);
+            return 0;
         }
         memset(client_message, 0, sizeof(client_message));
         }
@@ -171,7 +175,7 @@ void *connection_handler(void *socket_desc)
         //printf("%s\n",user_array[no_of_users].username);
         no_of_users++;
     }
-
+    printf("harsh");
     no_of_conn++;
     int new_user=0;
     ////printf("%s\n", user_array[no_of_conn].username);
@@ -187,7 +191,7 @@ void *connection_handler(void *socket_desc)
 
             while  (new_user<no_of_conn)
             {
-            if(ini_conn-new_user!=sock)
+            if(ini_conn-new_user!=sock&&connection_array[ini_conn-new_user]==1)
             write(ini_conn-new_user , cli_mes_final , strlen(cli_mes_final));
             new_user++;
             }
@@ -222,14 +226,17 @@ void *connection_handler(void *socket_desc)
                     char *handling_ptr1;
                     //printf("%s\n",user_array[a].handle );
 
-                    if(handling_ptr1=substring_bool(handling_ptr,user_array[a].handle) )
+                    if(handling_ptr1=substring_bool(handling_ptr,user_array[a].handle))
                     {   
-                        //printf("hi");
-                        if(handling_ptr1=substring_bool(handling_ptr1," disconnect"))
+                        printf("hi");
+                        if(handling_ptr1=substring_bool(handling_ptr1," disconnect")){
                             for(int j=0;j<=user_array[a].pos;j++)
-                                {close(user_array[a].conn_array[j]);
+                                {connection_array[user_array[a].conn_array[j]]=0;
+                                    close(user_array[a].conn_array[j]);
                                 printf("%d\n",user_array[a].conn_array[j] );
+                                
                                 } 
+                        }
                     }
                      a++;
                 }
@@ -267,8 +274,9 @@ void *connection_handler(void *socket_desc)
 
                         //printf("%d\n",ini_conn );
                         //printf( "%d\n",ini_conn+a);
-                        for(int j=0;j<=user_array[a].pos;j++)
-                             write(user_array[a].conn_array[j], cli_mes_final , strlen(cli_mes_final));
+                        int t;
+                        for(int j=0;j<=user_array[a].pos&&connection_array[t=user_array[a].conn_array[j]]==1;j++)
+                             write(t, cli_mes_final , strlen(cli_mes_final));
                         memset(cli_mes_final, 0, sizeof(cli_mes_final)); 
                         memset(client_message, 0, sizeof(client_message));
 
@@ -276,6 +284,14 @@ void *connection_handler(void *socket_desc)
                     a++;
                 }
                 dm=1;
+            }
+            else if(handling_ptr=substring_bool(client_message,"close")){
+               if(handling_ptr[0]==0x0d){ 
+                printf("%d\n",sock);
+                connection_array[sock]=0;
+                close(sock);
+                return 0;
+            }
             }
             else
             {
@@ -303,7 +319,7 @@ void *connection_handler(void *socket_desc)
             if(dm==0)
                 while (a<no_of_conn)
                 {
-                    if(ini_conn-a!=sock)
+                    if(ini_conn-a!=sock&&connection_array[ini_conn-a]==1)
                     write(ini_conn-a , cli_mes_final , strlen(cli_mes_final));
                     a++;
                 }
