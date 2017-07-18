@@ -107,7 +107,7 @@ void *connection_handler(void *socket_desc)
 {
     //read and write 
     int read_size;
-    char *message , client_message[2000],cli_mes_final[2100];
+    char *message , client_message[2000],cli_mes_final[2100],user_prompt[200];
     char username_entry[50];
 
     //Get the socket descriptor
@@ -202,9 +202,15 @@ void *connection_handler(void *socket_desc)
      
     //Receive a message from client
     
+    strcat(user_prompt,KBLU "( ");
+    strcat(user_prompt,user_handled.handle);
+    strcat(user_prompt," ):" KWHT);
+    //write(sock , user_prompt , strlen(user_prompt));
+    
     while( (read_size = recv(sock , client_message , 2000 , 0)) > 0 )
     {   
        // printf("%d",read_size);
+       //write(sock , user_prompt , strlen(user_prompt));
         if (client_message[0]!=0x0d)
         {   
             int a=0,dm=0;
